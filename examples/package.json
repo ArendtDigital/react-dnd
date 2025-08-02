@@ -1,0 +1,24 @@
+{
+  "name": "react-dnd-examples",
+  "version": "1.0.0",
+  "description": "Interactive examples for React-DND library",
+  "main": "index.html",
+  "scripts": {
+    "start": "npx http-server . -p 3000 -o",
+    "dev": "npx http-server . -p 3000 -o -c-1",
+    "serve": "npx serve . -p 3000",
+    "open": "open index.html"
+  },
+  "keywords": [
+    "react",
+    "drag-and-drop",
+    "examples",
+    "demo"
+  ],
+  "author": "ArendtDigital",
+  "license": "MIT",
+  "devDependencies": {
+    "http-server": "^14.1.1",
+    "serve": "^14.2.0"
+  }
+} 
