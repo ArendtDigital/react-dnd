@@ -4,10 +4,13 @@
   "description": "Interactive examples for React-DND library",
   "main": "index.html",
   "scripts": {
-    "start": "npx http-server . -p 3000 -o",
-    "dev": "npx http-server . -p 3000 -o -c-1",
-    "serve": "npx serve . -p 3000",
-    "open": "open index.html"
+    "start": "npx http-server . -p ${PORT:-3000} -o",
+    "dev": "npx http-server . -p ${PORT:-3000} -o -c-1",
+    "serve": "npx serve . -p ${PORT:-3000}",
+    "open": "open index.html",
+    "dev:3001": "npx http-server . -p 3001 -o -c-1",
+    "dev:3002": "npx http-server . -p 3002 -o -c-1",
+    "dev:3003": "npx http-server . -p 3003 -o -c-1"
   },
   "keywords": [
     "react",

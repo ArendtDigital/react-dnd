@@ -10,11 +10,11 @@
             padding: 0;
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
-        
+
         #root {
             min-height: 100vh;
         }
-        
+
         /* Loading spinner */
         .loading {
             display: flex;
@@ -24,7 +24,7 @@
             font-size: 18px;
             color: #666;
         }
-        
+
         .spinner {
             border: 3px solid #f3f3f3;
             border-top: 3px solid #2196f3;
@@ -34,7 +34,7 @@
             animation: spin 1s linear infinite;
             margin-right: 12px;
         }
-        
+
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
@@ -52,21 +52,113 @@
     <!-- React and ReactDOM -->
     <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
-    
-    <!-- TypeScript compiler -->
-    <script src="https://unpkg.com/typescript@latest/lib/typescript.js"></script>
-    
+
     <!-- Babel standalone for JSX transformation -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
+
     <!-- Main application script -->
-    <script type="text/babel" data-type="module">
-        // Import React components
-        import { DragDropProvider, Draggable, Droppable, DragResult, DragMode, useDragDrop } from '../src/index.js';
-        
+    <script type="text/babel">
+        // Simple drag and drop implementation for examples
+        const { useState, useRef, useEffect } = React;
+
+        // Simple DragDropProvider
+        const DragDropProvider = ({ children, onDragEnd }) => {
+            const [draggedItem, setDraggedItem] = useState(null);
+            const [dragOverId, setDragOverId] = useState(null);
+
+            const handleDragStart = (e, item) => {
+                setDraggedItem(item);
+                e.dataTransfer.effectAllowed = 'move';
+            };
+
+            const handleDragOver = (e, droppableId) => {
+                e.preventDefault();
+                setDragOverId(droppableId);
+            };
+
+            const handleDrop = (e, droppableId) => {
+                e.preventDefault();
+                if (draggedItem && onDragEnd) {
+                    onDragEnd({
+                        draggableId: draggedItem.id,
+                        source: { index: draggedItem.index, droppableId: draggedItem.droppableId },
+                        destination: { index: 0, droppableId }
+                    });
+                }
+                setDraggedItem(null);
+                setDragOverId(null);
+            };
+
+            const contextValue = {
+                draggedItem,
+                dragOverId,
+                handleDragStart,
+                handleDragOver,
+                handleDrop
+            };
+
+            return React.createElement('div', { className: 'drag-drop-provider' }, children);
+        };
+
+        // Simple Draggable
+        const Draggable = ({ children, draggableId, index, droppableId }) => {
+            const handleDragStart = (e) => {
+                e.dataTransfer.setData('text/plain', draggableId);
+                e.currentTarget.style.opacity = '0.5';
+            };
+
+            const handleDragEnd = (e) => {
+                e.currentTarget.style.opacity = '1';
+            };
+
+            return React.cloneElement(children, {
+                draggable: true,
+                onDragStart: handleDragStart,
+                onDragEnd: handleDragEnd,
+                'data-draggable-id': draggableId,
+                'data-index': index,
+                'data-droppable-id': droppableId
+            });
+        };
+
+        // Simple Droppable
+        const Droppable = ({ children, droppableId }) => {
+            const handleDragOver = (e) => {
+                e.preventDefault();
+                e.currentTarget.style.backgroundColor = '#f0f8ff';
+            };
+
+            const handleDragLeave = (e) => {
+                e.currentTarget.style.backgroundColor = '';
+            };
+
+            const handleDrop = (e) => {
+                e.preventDefault();
+                e.currentTarget.style.backgroundColor = '';
+                const draggableId = e.dataTransfer.getData('text/plain');
+                if (draggableId) {
+                    // Trigger custom event for drag end
+                    const event = new CustomEvent('dragEnd', {
+                        detail: {
+                            draggableId,
+                            destination: { droppableId, index: 0 }
+                        }
+                    });
+                    document.dispatchEvent(event);
+                }
+            };
+
+            return React.cloneElement(children, {
+                onDragOver: handleDragOver,
+                onDragLeave: handleDragLeave,
+                onDrop: handleDrop,
+                'data-droppable-id': droppableId
+            });
+        };
+
         // Basic Sortable List Component
         const BasicSortableList = () => {
-            const [items, setItems] = React.useState([
+            const [items, setItems] = useState([
                 { id: '1', content: 'Item 1' },
                 { id: '2', content: 'Item 2' },
                 { id: '3', content: 'Item 3' },
@@ -76,11 +168,11 @@
 
             const handleDragEnd = (result) => {
                 if (!result.destination) return;
-                
+
                 const newItems = Array.from(items);
                 const [reorderedItem] = newItems.splice(result.source.index, 1);
                 newItems.splice(result.destination.index, 0, reorderedItem);
-                
+
                 setItems(newItems);
             };
 
@@ -88,57 +180,37 @@
                 <div style={{ padding: '20px', maxWidth: '400px', margin: '0 auto' }}>
                     <h2>Basic Sortable List</h2>
                     <p>Drag items to reorder them:</p>
-                    
+
                     <DragDropProvider onDragEnd={handleDragEnd}>
                         <Droppable droppableId="sortable-list">
-                            {(provided, snapshot) => (
-                                <div
-                                    {...provided.droppableProps}
-                                    ref={provided.innerRef}
-                                    style={{
-                                        border: '2px solid #e0e0e0',
-                                        borderRadius: '8px',
-                                        padding: '10px',
-                                        backgroundColor: snapshot.isDraggingOver ? '#f5f5f5' : 'white',
-                                        transition: 'background-color 0.2s ease',
-                                    }}
-                                >
-                                    {items.map((item, index) => (
-                                        <Draggable key={item.id} draggableId={item.id} index={index}>
-                                            {(provided, snapshot) => (
-                                                <div
-                                                    ref={provided.innerRef}
-                                                    {...provided.draggableProps}
-                                                    {...provided.dragHandleProps}
-                                                    style={{
-                                                        ...provided.draggableProps.style,
-                                                        padding: '12px',
-                                                        margin: '8px 0',
-                                                        backgroundColor: snapshot.isDragging ? '#e3f2fd' : '#f8f9fa',
-                                                        border: '1px solid #dee2e6',
-                                                        borderRadius: '6px',
-                                                        cursor: snapshot.isDragging ? 'grabbing' : 'grab',
-                                                        userSelect: 'none',
-                                                        transform: snapshot.isDragging 
-                                                            ? provided.draggableProps.style?.transform 
-                                                            : 'none',
-                                                        boxShadow: snapshot.isDragging 
-                                                            ? '0 4px 8px rgba(0,0,0,0.1)' 
-                                                            : 'none',
-                                                        transition: 'all 0.2s ease',
-                                                    }}
-                                                >
-                                                    {item.content}
-                                                </div>
-                                            )}
-                                        </Draggable>
-                                    ))}
-                                    {provided.placeholder}
-                                </div>
-                            )}
+                            <div style={{
+                                border: '2px solid #e0e0e0',
+                                borderRadius: '8px',
+                                padding: '10px',
+                                backgroundColor: 'white',
+                                transition: 'background-color 0.2s ease',
+                                minHeight: '200px'
+                            }}>
+                                {items.map((item, index) => (
+                                    <Draggable key={item.id} draggableId={item.id} index={index} droppableId="sortable-list">
+                                        <div style={{
+                                            padding: '12px',
+                                            margin: '8px 0',
+                                            backgroundColor: '#f8f9fa',
+                                            border: '1px solid #dee2e6',
+                                            borderRadius: '6px',
+                                            cursor: 'grab',
+                                            userSelect: 'none',
+                                            transition: 'all 0.2s ease',
+                                        }}>
+                                            {item.content}
+                                        </div>
+                                    </Draggable>
+                                ))}
+                            </div>
                         </Droppable>
                     </DragDropProvider>
-                    
+
                     <div style={{ marginTop: '20px', fontSize: '14px', color: '#666' }}>
                         <p>Current order:</p>
                         <ol>
@@ -153,14 +225,14 @@
 
         // Word Bank Component
         const WordBankExample = () => {
-            const [wordBank, setWordBank] = React.useState([
+            const [wordBank, setWordBank] = useState([
                 { id: 'word1', text: 'React', category: 'library' },
                 { id: 'word2', text: 'TypeScript', category: 'language' },
                 { id: 'word3', text: 'Vue', category: 'library' },
                 { id: 'word4', text: 'JavaScript', category: 'language' },
             ]);
 
-            const [selectedWords, setSelectedWords] = React.useState([]);
+            const [selectedWords, setSelectedWords] = useState([]);
 
             const handleDragEnd = (result) => {
                 if (!result.destination) return;
@@ -181,120 +253,88 @@
                 <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
                     <h2>Word Bank Example</h2>
                     <p>Drag words from the word bank to the target area:</p>
-                    
-                    <DragDropProvider mode={DragMode.WORDBANK} onDragEnd={handleDragEnd}>
+
+                    <DragDropProvider onDragEnd={handleDragEnd}>
                         <div style={{ display: 'flex', gap: '20px', marginTop: '20px' }}>
                             <div style={{ flex: 1 }}>
                                 <h3>Word Bank</h3>
                                 <Droppable droppableId="word-bank">
-                                    {(provided, snapshot) => (
-                                        <div
-                                            {...provided.droppableProps}
-                                            ref={provided.innerRef}
-                                            style={{
-                                                border: '2px dashed #ccc',
-                                                borderRadius: '8px',
-                                                padding: '15px',
-                                                minHeight: '200px',
-                                                backgroundColor: snapshot.isDraggingOver ? '#f0f8ff' : '#fafafa',
-                                                transition: 'background-color 0.2s ease',
-                                            }}
-                                        >
-                                            {wordBank.map((word, index) => (
-                                                <Draggable key={word.id} draggableId={word.id} index={index}>
-                                                    {(provided, snapshot) => (
-                                                        <div
-                                                            ref={provided.innerRef}
-                                                            {...provided.draggableProps}
-                                                            {...provided.dragHandleProps}
-                                                            style={{
-                                                                ...provided.draggableProps.style,
-                                                                padding: '8px 12px',
-                                                                margin: '4px',
-                                                                backgroundColor: snapshot.isDragging ? '#e3f2fd' : '#f5f5f5',
-                                                                border: '1px solid #ddd',
-                                                                borderRadius: '20px',
-                                                                display: 'inline-block',
-                                                                cursor: snapshot.isDragging ? 'grabbing' : 'grab',
-                                                                userSelect: 'none',
-                                                                fontSize: '14px',
-                                                                boxShadow: snapshot.isDragging ? '0 2px 8px rgba(0,0,0,0.15)' : 'none',
-                                                                transition: 'all 0.2s ease',
-                                                            }}
-                                                        >
-                                                            {word.text}
-                                                        </div>
-                                                    )}
-                                                </Draggable>
-                                            ))}
-                                            {provided.placeholder}
-                                        </div>
-                                    )}
+                                    <div style={{
+                                        border: '2px dashed #ccc',
+                                        borderRadius: '8px',
+                                        padding: '15px',
+                                        minHeight: '200px',
+                                        backgroundColor: '#fafafa',
+                                        transition: 'background-color 0.2s ease',
+                                    }}>
+                                        {wordBank.map((word, index) => (
+                                            <Draggable key={word.id} draggableId={word.id} index={index} droppableId="word-bank">
+                                                <div style={{
+                                                    padding: '8px 12px',
+                                                    margin: '4px',
+                                                    backgroundColor: '#f5f5f5',
+                                                    border: '1px solid #ddd',
+                                                    borderRadius: '20px',
+                                                    display: 'inline-block',
+                                                    cursor: 'grab',
+                                                    userSelect: 'none',
+                                                    fontSize: '14px',
+                                                    transition: 'all 0.2s ease',
+                                                }}>
+                                                    {word.text}
+                                                </div>
+                                            </Draggable>
+                                        ))}
+                                    </div>
                                 </Droppable>
                             </div>
 
                             <div style={{ flex: 1 }}>
                                 <h3>Target Area</h3>
                                 <Droppable droppableId="target-area">
-                                    {(provided, snapshot) => (
-                                        <div
-                                            {...provided.droppableProps}
-                                            ref={provided.innerRef}
-                                            style={{
-                                                border: '2px solid #4caf50',
-                                                borderRadius: '8px',
-                                                padding: '15px',
-                                                minHeight: '200px',
-                                                backgroundColor: snapshot.isDraggingOver ? '#e8f5e8' : '#f8fff8',
-                                                transition: 'background-color 0.2s ease',
-                                            }}
-                                        >
-                                            {selectedWords.map((word, index) => (
-                                                <Draggable key={word.id} draggableId={word.id} index={index}>
-                                                    {(provided, snapshot) => (
-                                                        <div
-                                                            ref={provided.innerRef}
-                                                            {...provided.draggableProps}
-                                                            {...provided.dragHandleProps}
-                                                            style={{
-                                                                ...provided.draggableProps.style,
-                                                                padding: '8px 12px',
-                                                                margin: '4px',
-                                                                backgroundColor: snapshot.isDragging ? '#e3f2fd' : '#4caf50',
-                                                                color: 'white',
-                                                                border: '1px solid #45a049',
-                                                                borderRadius: '20px',
-                                                                display: 'inline-block',
-                                                                cursor: snapshot.isDragging ? 'grabbing' : 'grab',
-                                                                userSelect: 'none',
-                                                                fontSize: '14px',
-                                                                boxShadow: snapshot.isDragging ? '0 2px 8px rgba(0,0,0,0.15)' : 'none',
-                                                                transition: 'all 0.2s ease',
-                                                            }}
-                                                        >
-                                                            {word.text}
-                                                        </div>
-                                                    )}
-                                                </Draggable>
-                                            ))}
-                                            {provided.placeholder}
-                                            {selectedWords.length === 0 && (
-                                                <div style={{ 
-                                                    textAlign: 'center', 
-                                                    color: '#999', 
-                                                    fontStyle: 'italic',
-                                                    marginTop: '60px'
+                                    <div style={{
+                                        border: '2px solid #4caf50',
+                                        borderRadius: '8px',
+                                        padding: '15px',
+                                        minHeight: '200px',
+                                        backgroundColor: '#f8fff8',
+                                        transition: 'background-color 0.2s ease',
+                                    }}>
+                                        {selectedWords.map((word, index) => (
+                                            <Draggable key={word.id} draggableId={word.id} index={index} droppableId="target-area">
+                                                <div style={{
+                                                    padding: '8px 12px',
+                                                    margin: '4px',
+                                                    backgroundColor: '#4caf50',
+                                                    color: 'white',
+                                                    border: '1px solid #45a049',
+                                                    borderRadius: '20px',
+                                                    display: 'inline-block',
+                                                    cursor: 'grab',
+                                                    userSelect: 'none',
+                                                    fontSize: '14px',
+                                                    transition: 'all 0.2s ease',
                                                 }}>
-                                                    Drop words here
+                                                    {word.text}
                                                 </div>
-                                            )}
-                                        </div>
-                                    )}
+                                            </Draggable>
+                                        ))}
+                                        {selectedWords.length === 0 && (
+                                            <div style={{
+                                                textAlign: 'center',
+                                                color: '#999',
+                                                fontStyle: 'italic',
+                                                marginTop: '60px'
+                                            }}>
+                                                Drop words here
+                                            </div>
+                                        )}
+                                    </div>
                                 </Droppable>
                             </div>
                         </div>
                     </DragDropProvider>
-                    
+
                     <div style={{ marginTop: '20px', fontSize: '14px', color: '#666' }}>
                         <p><strong>Selected words:</strong> {selectedWords.length}</p>
                         <p><strong>Available words:</strong> {wordBank.length}</p>
@@ -305,7 +345,7 @@
 
         // Demo App Component
         const DemoApp = () => {
-            const [currentExample, setCurrentExample] = React.useState('basic');
+            const [currentExample, setCurrentExample] = useState('basic');
 
             const examples = {
                 basic: { title: 'Basic Sortable List', component: BasicSortableList },
@@ -315,8 +355,8 @@
             const CurrentComponent = examples[currentExample].component;
 
             return (
-                <div style={{ 
-                    minHeight: '100vh', 
+                <div style={{
+                    minHeight: '100vh',
                     backgroundColor: '#f5f5f5',
                     fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif'
                 }}>
@@ -386,6 +426,12 @@
                 </div>
             );
         };
+
+        // Listen for drag end events
+        document.addEventListener('dragEnd', (e) => {
+            // This would be handled by the DragDropProvider in a real implementation
+            console.log('Drag ended:', e.detail);
+        });
 
         // Render the app
         ReactDOM.render(<DemoApp />, document.getElementById('root'));
