@@ -365,24 +365,7 @@ const CustomDragDrop: React.FC<CustomDragDropProps> = ({
           result.push(
             <div
               key={`shadow-${listId}-${index}`}
-              className="item-shadow"
-              style={{
-                backgroundColor: isWordBankMode ? '#1a1a1a' : 'rgba(0, 0, 0, 0.6)',
-                border: isWordBankMode ? '2px solid #000' : '2px dashed rgba(0, 0, 0, 0.7)',
-                borderRadius: '6px',
-                margin: '0 0.25rem',
-                padding: '0.25rem 0.75rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '14px',
-                color: isWordBankMode ? '#fff' : 'rgba(0, 0, 0, 0.8)',
-                pointerEvents: 'none',
-                minWidth: 'fit-content',
-                height: '40px',
-                whiteSpace: 'nowrap',
-                boxShadow: isWordBankMode ? 'none' : 'inset 0 2px 4px rgba(0, 0, 0, 0.3)',
-              }}
+              className={`item-shadow ${isWordBankMode ? 'wordbank-mode' : 'regular-mode'}`}
             >
               {draggedItem?.text || 'Shadow'}
             </div>
@@ -392,42 +375,25 @@ const CustomDragDrop: React.FC<CustomDragDropProps> = ({
           result.push(
             <div
               key={`permanent-shadow-${listId}-${index}`}
-              className="item-shadow"
-              style={{
-                backgroundColor: '#1a1a1a',
-                border: '2px solid #000',
-                borderRadius: '6px',
-                margin: '0 0.25rem',
-                padding: '0.25rem 0.75rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '14px',
-                color: '#fff',
-                pointerEvents: 'none',
-                minWidth: 'fit-content',
-                height: '40px',
-                whiteSpace: 'nowrap',
-              }}
+              className="item-shadow permanent-shadow"
             >
               {permanentShadows[item.id]?.text || item.text}
             </div>
           );
         } else {
-          // Render normal item
-          result.push(
-            <div
-              key={item.id}
-              className="item source-item"
-              style={{
-                backgroundColor: item.color,
-                opacity: 0.6,
-              }}
-              onMouseDown={(e) => handleMouseDown(e, item, listId)}
-            >
-              <span className="item-text">{item.text}</span>
-            </div>
-          );
+                  // Render normal item
+        result.push(
+          <div
+            key={item.id}
+            className="item source-item"
+            style={{
+              backgroundColor: item.color,
+            }}
+            onMouseDown={(e) => handleMouseDown(e, item, listId)}
+          >
+            <span className="item-text">{item.text}</span>
+          </div>
+        );
         }
       });
     } else if (isWordBankMode && listId === 'sentence') {
@@ -445,23 +411,7 @@ const CustomDragDrop: React.FC<CustomDragDropProps> = ({
           result.push(
             <div
               key={`placeholder-${listId}-${index}`}
-              className="placeholder"
-              style={{
-                backgroundColor: '#e3f2fd',
-                border: '2px dashed #2196f3',
-                borderRadius: '6px',
-                margin: '0 0.25rem',
-                padding: '0.25rem 0.75rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '14px',
-                color: '#1976d2',
-                pointerEvents: 'none',
-                minWidth: 'fit-content',
-                height: '40px',
-                whiteSpace: 'nowrap',
-              }}
+              className="placeholder wordbank-mode"
             >
               {draggedItem?.text || 'Drop'}
             </div>
@@ -489,23 +439,7 @@ const CustomDragDrop: React.FC<CustomDragDropProps> = ({
         result.push(
           <div
             key={`placeholder-${listId}-end`}
-            className="placeholder"
-            style={{
-              backgroundColor: '#e3f2fd',
-              border: '2px dashed #2196f3',
-              borderRadius: '6px',
-              margin: '0 0.25rem',
-              padding: '0.25rem 0.75rem',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '14px',
-              color: '#1976d2',
-              pointerEvents: 'none',
-              minWidth: 'fit-content',
-              height: '40px',
-              whiteSpace: 'nowrap',
-            }}
+            className="placeholder wordbank-mode"
           >
             {draggedItem?.text || 'Drop'}
           </div>
@@ -528,22 +462,7 @@ const CustomDragDrop: React.FC<CustomDragDropProps> = ({
           result.push(
             <div
               key={`permanent-shadow-${listId}-${index}`}
-              className="item-shadow"
-              style={{
-                backgroundColor: isDraggingBackToShadow ? '#e3f2fd' : 'hsl(0, 0%, 10%)',
-                border: isDraggingBackToShadow ? '2px dashed #2196f3' : 'none',
-                borderRadius: '6px',
-                padding: '0.25rem 0.75rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '14px',
-                color: isDraggingBackToShadow ? '#1976d2' : 'hsl(0, 0%, 10%)',
-                pointerEvents: 'none',
-                minWidth: 'fit-content',
-                height: '40px',
-                whiteSpace: 'nowrap',
-              }}
+              className={`item-shadow ${isDraggingBackToShadow ? 'wordbank-mode' : 'permanent-shadow'}`}
             >
               {item.text}
             </div>
@@ -556,7 +475,6 @@ const CustomDragDrop: React.FC<CustomDragDropProps> = ({
               className="item"
               style={{
                 backgroundColor: item.color,
-                opacity: 1,
               }}
               onMouseDown={(e) => handleMouseDown(e, item, listId)}
             >
@@ -580,23 +498,7 @@ const CustomDragDrop: React.FC<CustomDragDropProps> = ({
           result.push(
             <div
               key={`placeholder-${listId}-${index}`}
-              className="placeholder"
-              style={{
-                backgroundColor: isShadowMode ? '#e3f2fd' : '#d0d0d0',
-                border: isShadowMode ? '2px dashed #2196f3' : '2px dashed #888',
-                borderRadius: '6px',
-                margin: '0 0.25rem',
-                padding: '0.25rem 0.75rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '14px',
-                color: isShadowMode ? '#1976d2' : '#666',
-                pointerEvents: 'none',
-                minWidth: 'fit-content',
-                height: '40px',
-                whiteSpace: 'nowrap',
-              }}
+              className={`placeholder ${isShadowMode ? 'wordbank-mode' : ''}`}
             >
               {draggedItem?.text || 'Drop'}
             </div>
@@ -624,23 +526,7 @@ const CustomDragDrop: React.FC<CustomDragDropProps> = ({
         result.push(
           <div
             key={`placeholder-${listId}-end`}
-            className="placeholder"
-            style={{
-              backgroundColor: isShadowMode ? '#e3f2fd' : '#d0d0d0',
-              border: isShadowMode ? '2px dashed #2196f3' : '2px dashed #888',
-              borderRadius: '6px',
-              margin: '0 0.25rem',
-              padding: '0.25rem 0.75rem',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '14px',
-              color: isShadowMode ? '#1976d2' : '#666',
-              pointerEvents: 'none',
-              minWidth: 'fit-content',
-              height: '40px',
-              whiteSpace: 'nowrap',
-            }}
+            className={`placeholder ${isShadowMode ? 'wordbank-mode' : ''}`}
           >
             {draggedItem?.text || 'Drop'}
           </div>
@@ -698,19 +584,9 @@ const CustomDragDrop: React.FC<CustomDragDropProps> = ({
         <div
           className="drag-preview"
           style={{
-            position: 'fixed',
             left: dragPreview.x - 30, // Center horizontally (assuming ~60px width)
             top: dragPreview.y - 20, // Center vertically (assuming ~40px height)
             backgroundColor: dragPreview.color,
-            color: 'white',
-            padding: '0.25rem 0.75rem',
-            borderRadius: '6px',
-            fontSize: '14px',
-            fontWeight: '600',
-            pointerEvents: 'none',
-            zIndex: 1000,
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
-            transform: 'rotate(5deg)',
           }}
         >
           {dragPreview.text}
