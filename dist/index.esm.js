@@ -331,48 +331,16 @@ const CustomDragDrop = ({ lists, onDragEnd, mode = 'reorder', permanentShadows =
                 const hasPermanentShadow = isWordBankMode && permanentShadows[item.id];
                 // If this is the dragged item, render shadow instead
                 if ((draggedItem === null || draggedItem === void 0 ? void 0 : draggedItem.id) === item.id) {
-                    result.push(jsxRuntime.exports.jsx("div", { className: "item-shadow", style: {
-                            backgroundColor: isWordBankMode ? '#1a1a1a' : 'rgba(0, 0, 0, 0.6)',
-                            border: isWordBankMode ? '2px solid #000' : '2px dashed rgba(0, 0, 0, 0.7)',
-                            borderRadius: '6px',
-                            margin: '0 0.25rem',
-                            padding: '0.25rem 0.75rem',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '14px',
-                            color: isWordBankMode ? '#fff' : 'rgba(0, 0, 0, 0.8)',
-                            pointerEvents: 'none',
-                            minWidth: 'fit-content',
-                            height: '40px',
-                            whiteSpace: 'nowrap',
-                            boxShadow: isWordBankMode ? 'none' : 'inset 0 2px 4px rgba(0, 0, 0, 0.3)',
-                        }, children: (draggedItem === null || draggedItem === void 0 ? void 0 : draggedItem.text) || 'Shadow' }, `shadow-${listId}-${index}`));
+                    result.push(jsxRuntime.exports.jsx("div", { className: `item-shadow ${isWordBankMode ? 'wordbank-mode' : 'regular-mode'}`, children: (draggedItem === null || draggedItem === void 0 ? void 0 : draggedItem.text) || 'Shadow' }, `shadow-${listId}-${index}`));
                 }
                 else if (hasPermanentShadow) {
                     // Show permanent shadow for moved items
-                    result.push(jsxRuntime.exports.jsx("div", { className: "item-shadow", style: {
-                            backgroundColor: '#1a1a1a',
-                            border: '2px solid #000',
-                            borderRadius: '6px',
-                            margin: '0 0.25rem',
-                            padding: '0.25rem 0.75rem',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '14px',
-                            color: '#fff',
-                            pointerEvents: 'none',
-                            minWidth: 'fit-content',
-                            height: '40px',
-                            whiteSpace: 'nowrap',
-                        }, children: ((_a = permanentShadows[item.id]) === null || _a === void 0 ? void 0 : _a.text) || item.text }, `permanent-shadow-${listId}-${index}`));
+                    result.push(jsxRuntime.exports.jsx("div", { className: "item-shadow permanent-shadow", children: ((_a = permanentShadows[item.id]) === null || _a === void 0 ? void 0 : _a.text) || item.text }, `permanent-shadow-${listId}-${index}`));
                 }
                 else {
                     // Render normal item
                     result.push(jsxRuntime.exports.jsx("div", { className: "item source-item", style: {
                             backgroundColor: item.color,
-                            opacity: 0.6,
                         }, onMouseDown: (e) => handleMouseDown(e, item, listId), children: jsxRuntime.exports.jsx("span", { className: "item-text", children: item.text }) }, item.id));
                 }
             });
@@ -387,22 +355,7 @@ const CustomDragDrop = ({ lists, onDragEnd, mode = 'reorder', permanentShadows =
                 }
                 // Add placeholder before the insert position
                 if (insertIndex === index) {
-                    result.push(jsxRuntime.exports.jsx("div", { className: "placeholder", style: {
-                            backgroundColor: '#e3f2fd',
-                            border: '2px dashed #2196f3',
-                            borderRadius: '6px',
-                            margin: '0 0.25rem',
-                            padding: '0.25rem 0.75rem',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '14px',
-                            color: '#1976d2',
-                            pointerEvents: 'none',
-                            minWidth: 'fit-content',
-                            height: '40px',
-                            whiteSpace: 'nowrap',
-                        }, children: (draggedItem === null || draggedItem === void 0 ? void 0 : draggedItem.text) || 'Drop' }, `placeholder-${listId}-${index}`));
+                    result.push(jsxRuntime.exports.jsx("div", { className: "placeholder wordbank-mode", children: (draggedItem === null || draggedItem === void 0 ? void 0 : draggedItem.text) || 'Drop' }, `placeholder-${listId}-${index}`));
                 }
                 // Add the actual item (only if not being dragged)
                 result.push(jsxRuntime.exports.jsx("div", { className: "item", style: {
@@ -412,22 +365,7 @@ const CustomDragDrop = ({ lists, onDragEnd, mode = 'reorder', permanentShadows =
             });
             // Add placeholder at the end if needed
             if (insertIndex === originalItemsLength) {
-                result.push(jsxRuntime.exports.jsx("div", { className: "placeholder", style: {
-                        backgroundColor: '#e3f2fd',
-                        border: '2px dashed #2196f3',
-                        borderRadius: '6px',
-                        margin: '0 0.25rem',
-                        padding: '0.25rem 0.75rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '14px',
-                        color: '#1976d2',
-                        pointerEvents: 'none',
-                        minWidth: 'fit-content',
-                        height: '40px',
-                        whiteSpace: 'nowrap',
-                    }, children: (draggedItem === null || draggedItem === void 0 ? void 0 : draggedItem.text) || 'Drop' }, `placeholder-${listId}-end`));
+                result.push(jsxRuntime.exports.jsx("div", { className: "placeholder wordbank-mode", children: (draggedItem === null || draggedItem === void 0 ? void 0 : draggedItem.text) || 'Drop' }, `placeholder-${listId}-end`));
             }
         }
         else if (isWordBankMode && listId === 'wordBank') {
@@ -442,27 +380,12 @@ const CustomDragDrop = ({ lists, onDragEnd, mode = 'reorder', permanentShadows =
                         draggedItem.sourceList !== 'wordBank' &&
                         permanentShadows[draggedItem.id] &&
                         permanentShadows[draggedItem.id].originalIndex === index;
-                    result.push(jsxRuntime.exports.jsx("div", { className: "item-shadow", style: {
-                            backgroundColor: isDraggingBackToShadow ? '#e3f2fd' : 'hsl(0, 0%, 10%)',
-                            border: isDraggingBackToShadow ? '2px dashed #2196f3' : 'none',
-                            borderRadius: '6px',
-                            padding: '0.25rem 0.75rem',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '14px',
-                            color: isDraggingBackToShadow ? '#1976d2' : 'hsl(0, 0%, 10%)',
-                            pointerEvents: 'none',
-                            minWidth: 'fit-content',
-                            height: '40px',
-                            whiteSpace: 'nowrap',
-                        }, children: item.text }, `permanent-shadow-${listId}-${index}`));
+                    result.push(jsxRuntime.exports.jsx("div", { className: `item-shadow ${isDraggingBackToShadow ? 'wordbank-mode' : 'permanent-shadow'}`, children: item.text }, `permanent-shadow-${listId}-${index}`));
                 }
                 else {
                     // This item should be a normal draggable word
                     result.push(jsxRuntime.exports.jsx("div", { className: "item", style: {
                             backgroundColor: item.color,
-                            opacity: 1,
                         }, onMouseDown: (e) => handleMouseDown(e, item, listId), children: jsxRuntime.exports.jsx("span", { className: "item-text", children: item.text }) }, item.id));
                 }
             });
@@ -477,22 +400,7 @@ const CustomDragDrop = ({ lists, onDragEnd, mode = 'reorder', permanentShadows =
                 }
                 // Add placeholder before the insert position
                 if (insertIndex === index) {
-                    result.push(jsxRuntime.exports.jsx("div", { className: "placeholder", style: {
-                            backgroundColor: isShadowMode ? '#e3f2fd' : '#d0d0d0',
-                            border: isShadowMode ? '2px dashed #2196f3' : '2px dashed #888',
-                            borderRadius: '6px',
-                            margin: '0 0.25rem',
-                            padding: '0.25rem 0.75rem',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '14px',
-                            color: isShadowMode ? '#1976d2' : '#666',
-                            pointerEvents: 'none',
-                            minWidth: 'fit-content',
-                            height: '40px',
-                            whiteSpace: 'nowrap',
-                        }, children: (draggedItem === null || draggedItem === void 0 ? void 0 : draggedItem.text) || 'Drop' }, `placeholder-${listId}-${index}`));
+                    result.push(jsxRuntime.exports.jsx("div", { className: `placeholder ${isShadowMode ? 'wordbank-mode' : ''}`, children: (draggedItem === null || draggedItem === void 0 ? void 0 : draggedItem.text) || 'Drop' }, `placeholder-${listId}-${index}`));
                 }
                 // Add the actual item (only if not being dragged)
                 result.push(jsxRuntime.exports.jsx("div", { className: "item", style: {
@@ -502,22 +410,7 @@ const CustomDragDrop = ({ lists, onDragEnd, mode = 'reorder', permanentShadows =
             });
             // Add placeholder at the end if needed
             if (insertIndex === originalItemsLength) {
-                result.push(jsxRuntime.exports.jsx("div", { className: "placeholder", style: {
-                        backgroundColor: isShadowMode ? '#e3f2fd' : '#d0d0d0',
-                        border: isShadowMode ? '2px dashed #2196f3' : '2px dashed #888',
-                        borderRadius: '6px',
-                        margin: '0 0.25rem',
-                        padding: '0.25rem 0.75rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontSize: '14px',
-                        color: isShadowMode ? '#1976d2' : '#666',
-                        pointerEvents: 'none',
-                        minWidth: 'fit-content',
-                        height: '40px',
-                        whiteSpace: 'nowrap',
-                    }, children: (draggedItem === null || draggedItem === void 0 ? void 0 : draggedItem.text) || 'Drop' }, `placeholder-${listId}-end`));
+                result.push(jsxRuntime.exports.jsx("div", { className: `placeholder ${isShadowMode ? 'wordbank-mode' : ''}`, children: (draggedItem === null || draggedItem === void 0 ? void 0 : draggedItem.text) || 'Drop' }, `placeholder-${listId}-end`));
             }
         }
         return result;
@@ -541,19 +434,9 @@ const CustomDragDrop = ({ lists, onDragEnd, mode = 'reorder', permanentShadows =
                                         listId === 'paragraph' ? 'Sample Paragraph' :
                                             listId === 'sentence' ? 'Build Your Sentence' :
                                                 listId === 'wordBank' ? 'Word Bank' : 'Unknown', isShadowMode && (draggedItem === null || draggedItem === void 0 ? void 0 : draggedItem.sourceList) === listId && (jsxRuntime.exports.jsx("span", { style: { fontSize: '0.8em', color: '#666', marginLeft: '0.5rem' }, children: "(Source - drag to other lists)" }))] }), jsxRuntime.exports.jsx("div", { ref: (el) => listRefs.current[listId] = el, className: `list ${dragOverList === listId ? 'dragging-over' : ''} ${isShadowMode && (draggedItem === null || draggedItem === void 0 ? void 0 : draggedItem.sourceList) === listId ? 'source-list' : ''}`, children: renderItemsWithPlaceholder(listId, items) })] }, listId))), dragPreview && (jsxRuntime.exports.jsx("div", { className: "drag-preview", style: {
-                    position: 'fixed',
                     left: dragPreview.x - 30,
                     top: dragPreview.y - 20,
                     backgroundColor: dragPreview.color,
-                    color: 'white',
-                    padding: '0.25rem 0.75rem',
-                    borderRadius: '6px',
-                    fontSize: '14px',
-                    fontWeight: '600',
-                    pointerEvents: 'none',
-                    zIndex: 1000,
-                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
-                    transform: 'rotate(5deg)',
                 }, children: dragPreview.text }))] }));
 };
 
@@ -1049,21 +932,7 @@ const Placeholder = ({ text, isShadowMode }) => {
 var Placeholder$1 = React.memo(Placeholder);
 
 const ShadowItem = ({ text, isDraggingBackToShadow }) => {
-    return (jsxRuntime.exports.jsx("div", { className: "drag-drop-shadow", style: {
-            backgroundColor: isDraggingBackToShadow ? '#e3f2fd' : 'hsl(0, 0%, 10%)',
-            border: isDraggingBackToShadow ? '2px dashed #2196f3' : 'none',
-            borderRadius: '6px',
-            padding: '0.25rem 0.75rem',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '14px',
-            color: isDraggingBackToShadow ? '#1976d2' : 'hsl(0, 0%, 10%)',
-            pointerEvents: 'none',
-            minWidth: 'fit-content',
-            height: '40px',
-            whiteSpace: 'nowrap',
-        }, children: text }));
+    return (jsxRuntime.exports.jsx("div", { className: `drag-drop-shadow ${isDraggingBackToShadow ? 'wordbank-mode' : 'permanent-shadow'}`, children: text }));
 };
 var ShadowItem$1 = React.memo(ShadowItem);
 
