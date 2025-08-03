@@ -46,7 +46,8 @@ export interface DragResult {
 export enum DragMode {
   REORDER = 'reorder',
   NO_REORDER = 'no-reorder',
-  WORDBANK = 'wordbank'
+  WORDBANK = 'wordbank',
+  CUSTOM = 'custom'
 }
 
 export interface DragPreviewOptions {
@@ -101,6 +102,10 @@ export interface DragDropContextValue {
   unregisterDroppable: (droppableId: string) => void;
   getDraggable: (draggableId: string) => DragDropConfig | undefined;
   getDroppable: (droppableId: string) => any | undefined;
+  permanentShadows: Record<string, any>;
+  setPermanentShadows: (shadows: Record<string, any>) => void;
+  addPermanentShadow: (id: string, shadow: any) => void;
+  removePermanentShadow: (id: string) => void;
 }
 
 // Utility types for better type safety

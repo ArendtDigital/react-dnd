@@ -1,154 +1,138 @@
 #!/usr/bin/env node
 
-const { spawn, execSync } = require('child_process');
+const { spawn, exec } = require('child_process');
+const chokidar = require('chokidar');
 const path = require('path');
-const fs = require('fs');
 
-console.log('🚀 React-DND Development Environment');
-console.log('=====================================\n');
+let examplesProcess = null;
+let buildProcess = null;
 
-// Check if we're in the right directory
-const packageJsonPath = path.join(process.cwd(), 'package.json');
-if (!fs.existsSync(packageJsonPath)) {
-  console.error('❌ Error: package.json not found. Please run this script from the project root.');
-  process.exit(1);
-}
-
-// Function to run commands
-function runCommand(command, args = [], options = {}) {
+// Function to build the library
+function buildLibrary() {
+  console.log('🔨 Building library...');
+  
   return new Promise((resolve, reject) => {
-    const child = spawn(command, args, {
-      stdio: 'inherit',
-      shell: true,
-      ...options
-    });
-
-    child.on('close', (code) => {
-      if (code === 0) {
-        resolve();
-      } else {
-        reject(new Error(`Command failed with exit code ${code}`));
+    buildProcess = exec('npm run build', { cwd: path.join(__dirname, '..') }, (error, stdout, stderr) => {
+      if (error) {
+        console.error('❌ Build failed:', error);
+        reject(error);
+        return;
       }
+      console.log('✅ Library built successfully');
+      resolve();
     });
-
-    child.on('error', (error) => {
-      reject(error);
-    });
+    
+    buildProcess.stdout.pipe(process.stdout);
+    buildProcess.stderr.pipe(process.stderr);
   });
 }
 
-// Function to check if port is available
-function isPortAvailable(port) {
-  try {
-    execSync(`netstat -an | grep :${port}`, { stdio: 'ignore' });
-    return false;
-  } catch {
-    return true;
-  }
+// Function to start examples development server
+function startExamples() {
+  console.log('🚀 Starting examples development server...');
+  
+  return new Promise((resolve, reject) => {
+    examplesProcess = spawn('npm', ['run', 'dev'], {
+      cwd: path.join(__dirname, '../examples'),
+      stdio: 'inherit',
+      shell: true
+    });
+    
+    examplesProcess.on('error', (error) => {
+      console.error('❌ Error starting examples:', error);
+      reject(error);
+    });
+    
+    examplesProcess.on('close', (code) => {
+      if (code !== 0) {
+        console.error(`❌ Examples server exited with code ${code}`);
+      }
+    });
+    
+    // Give it a moment to start
+    setTimeout(resolve, 2000);
+  });
 }
 
-// Main development function
-async function startDev() {
+// Function to restart examples
+async function restartExamples() {
+  if (examplesProcess) {
+    console.log('🔄 Restarting examples server...');
+    examplesProcess.kill();
+    await new Promise(resolve => setTimeout(resolve, 1000));
+  }
+  await startExamples();
+}
+
+// Function to watch for changes
+function watchForChanges() {
+  console.log('👀 Watching for changes in src/ directory...');
+  
+  const watcher = chokidar.watch(path.join(__dirname, '../src/**/*'), {
+    ignored: /node_modules/,
+    persistent: true
+  });
+  
+  let rebuildTimeout = null;
+  
+  watcher.on('change', async (filePath) => {
+    console.log(`📝 File changed: ${path.relative(path.join(__dirname, '..'), filePath)}`);
+    
+    // Debounce rebuilds
+    if (rebuildTimeout) {
+      clearTimeout(rebuildTimeout);
+    }
+    
+    rebuildTimeout = setTimeout(async () => {
+      try {
+        await buildLibrary();
+        await restartExamples();
+      } catch (error) {
+        console.error('❌ Error during rebuild:', error);
+      }
+    }, 500);
+  });
+  
+  return watcher;
+}
+
+// Main function
+async function main() {
   try {
-    console.log('📦 Installing dependencies...');
-    await runCommand('npm', ['install']);
+    console.log('🎯 Starting React-DND development environment...');
     
-    console.log('🔨 Building library...');
-    await runCommand('npm', ['run', 'build']);
+    // Initial build
+    await buildLibrary();
     
-    console.log('🧪 Running tests...');
-    await runCommand('npm', ['test']);
+    // Start examples
+    await startExamples();
     
-    console.log('📝 Running linting...');
-    await runCommand('npm', ['run', 'lint']);
+    // Watch for changes
+    const watcher = watchForChanges();
     
-    console.log('✅ All checks passed!\n');
+    console.log('\n🎉 Development environment ready!');
+    console.log('📱 Examples running at: http://localhost:3000');
+    console.log('👀 Watching for changes in src/ directory...');
+    console.log('⏹️  Press Ctrl+C to stop\n');
     
-    console.log('🌐 Starting examples server...');
-    console.log('   Examples will be available at: http://localhost:3000');
-    console.log('   Press Ctrl+C to stop the server\n');
-    
-    // Start the examples server
-    await runCommand('npm', ['run', 'examples:dev']);
+    // Handle graceful shutdown
+    process.on('SIGINT', () => {
+      console.log('\n👋 Shutting down development environment...');
+      if (examplesProcess) {
+        examplesProcess.kill();
+      }
+      if (buildProcess) {
+        buildProcess.kill();
+      }
+      watcher.close();
+      process.exit(0);
+    });
     
   } catch (error) {
-    console.error('❌ Error:', error.message);
+    console.error('❌ Error starting development environment:', error);
     process.exit(1);
   }
 }
 
-// Function to run tests only
-async function runTests() {
-  try {
-    console.log('🧪 Running tests...');
-    await runCommand('npm', ['test']);
-    console.log('✅ Tests completed successfully!');
-  } catch (error) {
-    console.error('❌ Tests failed:', error.message);
-    process.exit(1);
-  }
-}
-
-// Function to run examples only
-async function runExamples() {
-  try {
-    console.log('🌐 Starting examples server...');
-    console.log('   Examples will be available at: http://localhost:3000');
-    console.log('   Press Ctrl+C to stop the server\n');
-    
-    await runCommand('npm', ['run', 'examples:dev']);
-  } catch (error) {
-    console.error('❌ Error starting examples:', error.message);
-    process.exit(1);
-  }
-}
-
-// Function to run validation
-async function runValidation() {
-  try {
-    console.log('🔍 Running full validation...');
-    await runCommand('npm', ['run', 'validate']);
-    console.log('✅ Validation completed successfully!');
-  } catch (error) {
-    console.error('❌ Validation failed:', error.message);
-    process.exit(1);
-  }
-}
-
-// Parse command line arguments
-const args = process.argv.slice(2);
-const command = args[0];
-
-switch (command) {
-  case 'test':
-    runTests();
-    break;
-  case 'examples':
-    runExamples();
-    break;
-  case 'validate':
-    runValidation();
-    break;
-  case 'help':
-  case '--help':
-  case '-h':
-    console.log(`
-Usage: node scripts/dev-examples.js [command]
-
-Commands:
-  (no command)  Start full development environment
-  test          Run tests only
-  examples      Start examples server only
-  validate      Run full validation (lint + type-check + test)
-  help          Show this help message
-
-Examples:
-  node scripts/dev-examples.js          # Start full dev environment
-  node scripts/dev-examples.js test     # Run tests only
-  node scripts/dev-examples.js examples # Start examples server
-    `);
-    break;
-  default:
-    startDev();
-    break;
-} 
+// Run the main function
+main(); 

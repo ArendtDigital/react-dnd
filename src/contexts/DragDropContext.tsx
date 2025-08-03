@@ -22,6 +22,7 @@ interface DragDropState {
     element: HTMLElement | null;
     offset: { x: number; y: number };
   } | null;
+  permanentShadows: Record<string, any>;
 }
 
 // Action types for the reducer
@@ -32,7 +33,10 @@ type DragDropAction =
   | { type: 'UNREGISTER_DROPPABLE'; payload: string }
   | { type: 'START_DRAG'; payload: { draggableId: string; source: { droppableId: string; index: number }; data?: any } }
   | { type: 'END_DRAG' }
-  | { type: 'SET_DRAG_PREVIEW'; payload: { element: HTMLElement | null; offset: { x: number; y: number } } };
+  | { type: 'SET_DRAG_PREVIEW'; payload: { element: HTMLElement | null; offset: { x: number; y: number } } }
+  | { type: 'SET_PERMANENT_SHADOWS'; payload: Record<string, any> }
+  | { type: 'ADD_PERMANENT_SHADOW'; payload: { id: string; shadow: any } }
+  | { type: 'REMOVE_PERMANENT_SHADOW'; payload: string };
 
 // Reducer for managing drag-and-drop state
 const dragDropReducer = (state: DragDropState, action: DragDropAction): DragDropState => {
@@ -91,6 +95,29 @@ const dragDropReducer = (state: DragDropState, action: DragDropAction): DragDrop
         },
       };
     
+    case 'SET_PERMANENT_SHADOWS':
+      return {
+        ...state,
+        permanentShadows: action.payload,
+      };
+    
+    case 'ADD_PERMANENT_SHADOW':
+      return {
+        ...state,
+        permanentShadows: {
+          ...state.permanentShadows,
+          [action.payload.id]: action.payload.shadow,
+        },
+      };
+    
+    case 'REMOVE_PERMANENT_SHADOW':
+      const newShadows = { ...state.permanentShadows };
+      delete newShadows[action.payload];
+      return {
+        ...state,
+        permanentShadows: newShadows,
+      };
+    
     default:
       return state;
   }
@@ -124,6 +151,7 @@ export const DragDropProvider: React.FC<DragDropProviderProps> = ({
     droppables: new Map(),
     currentDrag: null,
     dragPreview: null,
+    permanentShadows: {},
   });
 
   // Memoized callbacks to prevent unnecessary re-renders
@@ -151,6 +179,18 @@ export const DragDropProvider: React.FC<DragDropProviderProps> = ({
     return state.droppables.get(droppableId);
   }, [state.droppables]);
 
+  const setPermanentShadows = useCallback((shadows: Record<string, any>) => {
+    dispatch({ type: 'SET_PERMANENT_SHADOWS', payload: shadows });
+  }, []);
+
+  const addPermanentShadow = useCallback((id: string, shadow: any) => {
+    dispatch({ type: 'ADD_PERMANENT_SHADOW', payload: { id, shadow } });
+  }, []);
+
+  const removePermanentShadow = useCallback((id: string) => {
+    dispatch({ type: 'REMOVE_PERMANENT_SHADOW', payload: id });
+  }, []);
+
   // Memoized context value to prevent unnecessary re-renders
   const contextValue = useMemo<DragDropContextValue>(() => ({
     mode,
@@ -165,6 +205,10 @@ export const DragDropProvider: React.FC<DragDropProviderProps> = ({
     unregisterDroppable,
     getDraggable,
     getDroppable,
+    permanentShadows: state.permanentShadows,
+    setPermanentShadows,
+    addPermanentShadow,
+    removePermanentShadow,
   }), [
     mode,
     onDragStart,
@@ -178,6 +222,10 @@ export const DragDropProvider: React.FC<DragDropProviderProps> = ({
     unregisterDroppable,
     getDraggable,
     getDroppable,
+    state.permanentShadows,
+    setPermanentShadows,
+    addPermanentShadow,
+    removePermanentShadow,
   ]);
 
   return (

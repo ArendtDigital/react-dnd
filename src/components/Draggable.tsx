@@ -3,7 +3,8 @@ import { useDragDropContext } from '../contexts/DragDropContext';
 import { 
   DraggableProvided, 
   DraggableStateSnapshot, 
-  DragDropConfig 
+  DragDropConfig,
+  Point
 } from '../types';
 import { validateDragDropConfig } from '../utils/validation';
 
@@ -14,6 +15,9 @@ interface DraggableProps {
   type?: string;
   data?: any;
   isDragDisabled?: boolean;
+  isShadow?: boolean;
+  listId?: string;
+  permanentShadows?: Record<string, any>;
 }
 
 export const Draggable: React.FC<DraggableProps> = React.memo(({
@@ -23,6 +27,9 @@ export const Draggable: React.FC<DraggableProps> = React.memo(({
   type = 'default',
   data,
   isDragDisabled = false,
+  isShadow = false,
+  listId,
+  permanentShadows,
 }) => {
   const context = useDragDropContext();
   const elementRef = useRef<HTMLElement | null>(null);
@@ -153,8 +160,47 @@ export const Draggable: React.FC<DraggableProps> = React.memo(({
   const snapshot = useMemo<DraggableStateSnapshot>(() => ({
     isDragging,
     draggingOver: undefined, // Will be updated by droppable
-    dragOffset,
+    dragOffset: dragOffset || undefined,
   }), [isDragging, dragOffset]);
+
+  // Render shadow if this is a shadow item in word bank mode
+  if (isShadow && listId === 'wordBank' && permanentShadows && permanentShadows[draggableId]) {
+    const shadowData = permanentShadows[draggableId];
+    
+    return (
+      <div
+        style={{
+          backgroundColor: 'hsl(0, 0%, 10%)',
+          border: 'none',
+          borderRadius: '6px',
+          padding: '0.25rem 0.75rem',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: '14px',
+          color: 'hsl(0, 0%, 10%)',
+          pointerEvents: 'none',
+          minWidth: 'fit-content',
+          height: '40px',
+          whiteSpace: 'nowrap',
+          margin: '0 0.25rem',
+          position: 'relative',
+          flexShrink: 0,
+          boxSizing: 'border-box',
+        }}
+      >
+        <span style={{
+          fontWeight: '600',
+          fontSize: '0.85rem',
+          textAlign: 'center',
+          whiteSpace: 'nowrap',
+          userSelect: 'none',
+        }}>
+          {shadowData.text || data?.text}
+        </span>
+      </div>
+    );
+  }
 
   return <>{children(provided, snapshot)}</>;
 });
