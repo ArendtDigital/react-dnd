@@ -1,0 +1,42 @@
+# Source files (keep dist for compiled output)
+src/
+
+# Development files
+examples/
+tests/
+scripts/
+jest.setup.js
+jest.config.js
+.eslintrc.js
+.eslintcache
+
+# Documentation
+*.md
+!README.md
+
+# Build tools
+rollup.config.js
+tsconfig.json
+build.js
+
+# Development dependencies
+node_modules/
+
+# Git files
+.git/
+.gitignore
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment files
+.env* 
