@@ -30,4 +30,7 @@ export type {
   DragMode,
 } from './types/dragDrop';
 
-export * from './types/index'; 
+export * from './types/index';
+
+// Styles
+import './styles/dragDrop.css'; 
