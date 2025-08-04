@@ -43,12 +43,12 @@ const WordBankRenderer: React.FC<WordBankRendererProps> = ({
         const item = items[i];
         const isShadow = permanentShadows[item.id];
         
-        if (isShadow) {
-          // Render shadow item
+        if (isShadow || (draggedItem?.id === item.id && listId === 'wordBank')) {
+          // Render shadow item (either permanent shadow or when item is being dragged from word bank)
           result.push(
             <ShadowItem 
               key={`shadow-${item.id}`} 
-              text={isShadow.text} 
+              text={isShadow ? isShadow.text : item.text} 
               isDraggingBackToShadow={draggedItem?.id === item.id}
             />
           );

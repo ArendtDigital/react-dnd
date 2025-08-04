@@ -12,6 +12,7 @@ export interface DragPreview {
   color: string;
   x: number;
   y: number;
+  sourceList?: string;
 }
 
 export interface MousePosition {

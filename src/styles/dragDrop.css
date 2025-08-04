@@ -1,4 +1,14 @@
 /* DragDrop Library Styles */
+
+/* Prevent text selection during drag operations */
+body.dragging {
+  user-select: none !important;
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  cursor: grabbing !important;
+}
+
 .drag-drop-container {
   display: flex;
   flex-direction: column;
@@ -97,6 +107,14 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+.item.wordbank-dragging {
+  background: #1a1a1a;
+  color: #ffffff;
+  border: 2px solid #000;
+  box-shadow: none;
+  opacity: 1;
+}
+
 .placeholder {
   background: #d0d0d0;
   border: 2px dashed #888;
@@ -145,22 +163,22 @@
 /* New classes to replace inline styles */
 .item-shadow.wordbank-mode {
   background: #1a1a1a;
-  border: 2px solid #000;
-  color: #fff;
+  border: none;
+  color: #666;
   box-shadow: none;
 }
 
 .item-shadow.regular-mode {
   background: rgba(0, 0, 0, 0.6);
-  border: 2px dashed rgba(0, 0, 0, 0.7);
+  border: none;
   color: rgba(0, 0, 0, 0.8);
   box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .item-shadow.permanent-shadow {
   background: #1a1a1a;
-  border: 2px solid #000;
-  color: #fff;
+  border: none;
+  color: #666;
   box-shadow: none;
 }
 
@@ -206,4 +224,6 @@
   z-index: 1000;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   transform: rotate(5deg);
-} 
+}
+
+/* Removed wordbank-preview styling - all dragged items should look the same */ 

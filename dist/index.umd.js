@@ -39,6 +39,38 @@
   	}
   } (jsxRuntime));
 
+  const DragPreview = ({ preview }) => {
+      // Check if this is a word bank item being dragged
+      preview.sourceList === 'wordBank';
+      return (jsxRuntime.exports.jsx("div", { className: "drag-drop-preview", style: {
+              position: 'fixed',
+              left: preview.x - 30,
+              top: preview.y - 20,
+              backgroundColor: preview.color,
+              color: 'white',
+              padding: '0.25rem 0.75rem',
+              borderRadius: '6px',
+              fontSize: '14px',
+              fontWeight: '600',
+              pointerEvents: 'none',
+              zIndex: 1000,
+              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+              transform: 'rotate(5deg)',
+              // Ensure same size as original items
+              minWidth: 'fit-content',
+              height: '40px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              // Prevent text selection during drag
+              userSelect: 'none',
+              WebkitUserSelect: 'none',
+              MozUserSelect: 'none',
+              msUserSelect: 'none',
+          }, children: preview.text }));
+  };
+  var DragPreview$1 = React__default["default"].memo(DragPreview);
+
   const CustomDragDrop = ({ lists, onDragEnd, mode = 'reorder', permanentShadows = {}, setPermanentShadows }) => {
       const [draggedItem, setDraggedItem] = React.useState(null);
       const [dragOverList, setDragOverList] = React.useState(null);
@@ -65,8 +97,11 @@
               text: item.text,
               color: item.color,
               x: e.clientX,
-              y: e.clientY
+              y: e.clientY,
+              sourceList: listId
           });
+          // Add dragging class to body to prevent text selection
+          document.body.classList.add('dragging');
           // Store original item positions
           const listElement = listRefs.current[listId];
           if (listElement) {
@@ -325,6 +360,8 @@
           setPlaceholderIndex(null);
           setDragPreview(null);
           lastUpdateRef.current = { listId: null, index: null };
+          // Remove dragging class from body
+          document.body.classList.remove('dragging');
       };
       const renderItemsWithPlaceholder = (listId, items) => {
           const result = [];
@@ -392,9 +429,15 @@
                   }
                   else {
                       // This item should be a normal draggable word
-                      result.push(jsxRuntime.exports.jsx("div", { className: "item", style: {
-                              backgroundColor: item.color,
-                          }, onMouseDown: (e) => handleMouseDown(e, item, listId), children: jsxRuntime.exports.jsx("span", { className: "item-text", children: item.text }) }, item.id));
+                      // But if it's being dragged, show a shadow instead
+                      if ((draggedItem === null || draggedItem === void 0 ? void 0 : draggedItem.id) === item.id) {
+                          result.push(jsxRuntime.exports.jsx("div", { className: "item-shadow permanent-shadow", children: item.text }, `shadow-${item.id}`));
+                      }
+                      else {
+                          result.push(jsxRuntime.exports.jsx("div", { className: "item", style: {
+                                  backgroundColor: item.color,
+                              }, onMouseDown: (e) => handleMouseDown(e, item, listId), children: jsxRuntime.exports.jsx("span", { className: "item-text", children: item.text }) }, item.id));
+                      }
                   }
               });
               // Remove placeholder logic for word bank - words can only return to their original shadow position
@@ -433,6 +476,8 @@
                   if (updateTimeoutRef.current) {
                       clearTimeout(updateTimeoutRef.current);
                   }
+                  // Remove dragging class when effect cleanup runs
+                  document.body.classList.remove('dragging');
               };
           }
       }, [draggedItem, dragOverList, placeholderIndex, draggedItemOriginalIndex]);
@@ -441,11 +486,7 @@
                                       listId === 'list3' ? 'Verbs' :
                                           listId === 'paragraph' ? 'Sample Paragraph' :
                                               listId === 'sentence' ? 'Build Your Sentence' :
-                                                  listId === 'wordBank' ? 'Word Bank' : 'Unknown', isShadowMode && (draggedItem === null || draggedItem === void 0 ? void 0 : draggedItem.sourceList) === listId && (jsxRuntime.exports.jsx("span", { style: { fontSize: '0.8em', color: '#666', marginLeft: '0.5rem' }, children: "(Source - drag to other lists)" }))] }), jsxRuntime.exports.jsx("div", { ref: (el) => listRefs.current[listId] = el, className: `list ${dragOverList === listId ? 'dragging-over' : ''} ${isShadowMode && (draggedItem === null || draggedItem === void 0 ? void 0 : draggedItem.sourceList) === listId ? 'source-list' : ''}`, children: renderItemsWithPlaceholder(listId, items) })] }, listId))), dragPreview && (jsxRuntime.exports.jsx("div", { className: "drag-preview", style: {
-                      left: dragPreview.x - 30,
-                      top: dragPreview.y - 20,
-                      backgroundColor: dragPreview.color,
-                  }, children: dragPreview.text }))] }));
+                                                  listId === 'wordBank' ? 'Word Bank' : 'Unknown', isShadowMode && (draggedItem === null || draggedItem === void 0 ? void 0 : draggedItem.sourceList) === listId && (jsxRuntime.exports.jsx("span", { style: { fontSize: '0.8em', color: '#666', marginLeft: '0.5rem' }, children: "(Source - drag to other lists)" }))] }), jsxRuntime.exports.jsx("div", { ref: (el) => listRefs.current[listId] = el, className: `list ${dragOverList === listId ? 'dragging-over' : ''} ${isShadowMode && (draggedItem === null || draggedItem === void 0 ? void 0 : draggedItem.sourceList) === listId ? 'source-list' : ''}`, children: renderItemsWithPlaceholder(listId, items) })] }, listId))), dragPreview && (jsxRuntime.exports.jsx(DragPreview$1, { preview: dragPreview }))] }));
   };
 
   exports.DragMode = void 0;
@@ -876,9 +917,11 @@
   Droppable.displayName = 'Droppable';
 
   const DragDropItem = ({ item, listId, index, isDragging, isSourceItem, onMouseDown }) => {
-      return (jsxRuntime.exports.jsx("div", { className: `drag-drop-item ${isSourceItem ? 'drag-drop-source-item' : ''}`, style: {
-              backgroundColor: item.color,
-              opacity: isSourceItem ? 0.6 : 1,
+      // Check if this is a word bank mode item (source item being dragged)
+      const isWordBankDragging = isSourceItem && isDragging;
+      return (jsxRuntime.exports.jsx("div", { className: `drag-drop-item ${isSourceItem ? 'drag-drop-source-item' : ''} ${isWordBankDragging ? 'wordbank-dragging' : ''}`, style: {
+              backgroundColor: isWordBankDragging ? undefined : item.color,
+              opacity: isWordBankDragging ? 1 : (isSourceItem ? 0.6 : 1),
               cursor: isSourceItem ? 'not-allowed' : 'grab',
           }, onMouseDown: (e) => onMouseDown(e, item, listId), children: jsxRuntime.exports.jsx("span", { className: "drag-drop-item-text", children: item.text }) }));
   };
@@ -899,25 +942,6 @@
       return (jsxRuntime.exports.jsxs("div", { className: "drag-drop-list-container", children: [jsxRuntime.exports.jsxs("h3", { className: "drag-drop-list-title", children: [getListTitle(listId), isSourceList && (jsxRuntime.exports.jsx("span", { style: { fontSize: '0.8em', color: '#666', marginLeft: '0.5rem' }, children: "(Source - drag to other lists)" }))] }), jsxRuntime.exports.jsx("div", { className: `drag-drop-list ${isDraggingOver ? 'drag-drop-dragging-over' : ''} ${isSourceList ? 'drag-drop-source-list' : ''}`, children: children })] }));
   };
   var DragDropList$1 = React__default["default"].memo(DragDropList);
-
-  const DragPreview = ({ preview }) => {
-      return (jsxRuntime.exports.jsx("div", { className: "drag-drop-preview", style: {
-              position: 'fixed',
-              left: preview.x - 30,
-              top: preview.y - 20,
-              backgroundColor: preview.color,
-              color: 'white',
-              padding: '0.25rem 0.75rem',
-              borderRadius: '6px',
-              fontSize: '14px',
-              fontWeight: '600',
-              pointerEvents: 'none',
-              zIndex: 1000,
-              boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
-              transform: 'rotate(5deg)',
-          }, children: preview.text }));
-  };
-  var DragPreview$1 = React__default["default"].memo(DragPreview);
 
   const Placeholder = ({ text, isShadowMode }) => {
       return (jsxRuntime.exports.jsx("div", { className: "drag-drop-placeholder", style: {

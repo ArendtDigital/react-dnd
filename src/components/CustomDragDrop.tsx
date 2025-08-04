@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import DragPreview from './DragPreview';
 
 interface DragItem {
   id: string;
@@ -54,8 +55,12 @@ const CustomDragDrop: React.FC<CustomDragDropProps> = ({
       text: item.text,
       color: item.color,
       x: e.clientX,
-      y: e.clientY
+      y: e.clientY,
+      sourceList: listId
     });
+    
+    // Add dragging class to body to prevent text selection
+    document.body.classList.add('dragging');
     
     // Store original item positions
     const listElement = listRefs.current[listId];
@@ -333,13 +338,16 @@ const CustomDragDrop: React.FC<CustomDragDropProps> = ({
       clearTimeout(updateTimeoutRef.current);
     }
     
-    // Reset state
-    setDraggedItem(null);
-    setDraggedItemOriginalIndex(null);
-    setDragOverList(null);
-    setPlaceholderIndex(null);
-    setDragPreview(null);
-    lastUpdateRef.current = { listId: null, index: null };
+            // Reset state
+        setDraggedItem(null);
+        setDraggedItemOriginalIndex(null);
+        setDragOverList(null);
+        setPlaceholderIndex(null);
+        setDragPreview(null);
+        lastUpdateRef.current = { listId: null, index: null };
+        
+        // Remove dragging class from body
+        document.body.classList.remove('dragging');
   };
 
   const renderItemsWithPlaceholder = (listId: string, items: DragItem[]) => {
@@ -469,18 +477,30 @@ const CustomDragDrop: React.FC<CustomDragDropProps> = ({
           );
         } else {
           // This item should be a normal draggable word
-          result.push(
-            <div
-              key={item.id}
-              className="item"
-              style={{
-                backgroundColor: item.color,
-              }}
-              onMouseDown={(e) => handleMouseDown(e, item, listId)}
-            >
-              <span className="item-text">{item.text}</span>
-            </div>
-          );
+          // But if it's being dragged, show a shadow instead
+          if (draggedItem?.id === item.id) {
+            result.push(
+              <div
+                key={`shadow-${item.id}`}
+                className="item-shadow permanent-shadow"
+              >
+                {item.text}
+              </div>
+            );
+          } else {
+            result.push(
+              <div
+                key={item.id}
+                className="item"
+                style={{
+                  backgroundColor: item.color,
+                }}
+                onMouseDown={(e) => handleMouseDown(e, item, listId)}
+              >
+                <span className="item-text">{item.text}</span>
+              </div>
+            );
+          }
         }
       });
       
@@ -547,6 +567,8 @@ const CustomDragDrop: React.FC<CustomDragDropProps> = ({
         if (updateTimeoutRef.current) {
           clearTimeout(updateTimeoutRef.current);
         }
+        // Remove dragging class when effect cleanup runs
+        document.body.classList.remove('dragging');
       };
     }
   }, [draggedItem, dragOverList, placeholderIndex, draggedItemOriginalIndex]);
@@ -581,16 +603,7 @@ const CustomDragDrop: React.FC<CustomDragDropProps> = ({
       
       {/* Custom drag preview */}
       {dragPreview && (
-        <div
-          className="drag-preview"
-          style={{
-            left: dragPreview.x - 30, // Center horizontally (assuming ~60px width)
-            top: dragPreview.y - 20, // Center vertically (assuming ~40px height)
-            backgroundColor: dragPreview.color,
-          }}
-        >
-          {dragPreview.text}
-        </div>
+        <DragPreview preview={dragPreview} />
       )}
     </div>
   );
